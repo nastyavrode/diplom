@@ -1,0 +1,14 @@
+# Локальная MongoDB для бэкенда (порт 27017 — как в backend/.env по умолчанию).
+# Запуск: docker compose up -d
+# Остановка: docker compose down
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - codequest_mongo_data:/data/db
+
+volumes:
+  codequest_mongo_data:

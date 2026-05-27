@@ -1,0 +1,79 @@
+import { useMemo } from 'react';
+import { useWindowDimensions } from 'react-native';
+
+/**
+ * Вёрстка экранов Welcome/Login/Register: на узких телефонах (например iPhone 12 mini, 375×812)
+ * уменьшаем шрифты и ширину контента. Вертикальное положение задаёт AuthScreenChrome (центр +
+ * SafeArea), здесь только отступы.
+ */
+export function useAuthLayoutMetrics() {
+  const { width: w, height: h } = useWindowDimensions();
+
+  return useMemo(() => {
+    const narrow = w < 420;
+    const compact = w < 400;
+    const tiny = w < 360; // Increased from 340 to 360 to consider more devices as 'tiny'
+    const tight = narrow || h < 750; // Increased from 700 to 750 to consider more devices as 'tight'
+
+    const padX = tiny ? 10 : compact ? 12 : 16;
+    const maxContentWidth = Math.max(260, Math.min(340, Math.floor(w - padX * 2)));
+
+    if (tight) {
+      return {
+        form: {
+          inputFontSize: tiny ? 16 : compact ? 17 : 18, // Increased all values by 1-2 points
+          inputPadV: tiny ? 10 : compact ? 11 : 12, // Increased padding
+          inputPadH: tiny ? 16 : compact ? 18 : 20, // Increased padding
+          inputMarginB: tiny ? 8 : compact ? 10 : 12, // Increased margin
+          btnFontSize: tiny ? 18 : compact ? 20 : 22, // Increased button font size
+          btnPadV: tiny ? 12 : compact ? 14 : 16, // Increased button padding
+          btnMarginB: tiny ? 8 : compact ? 10 : 12, // Increased margin
+          btnMarginT: tiny ? 4 : compact ? 6 : 8, // Increased margin
+          linkFontSize: tiny ? 15 : compact ? 16 : 18, // Increased link font size
+          mutedLinkFontSize: tiny ? 14 : 16, // Increased muted link font size
+          maxContentWidth,
+          padX,
+        },
+        chrome: {
+          titleSize: tiny ? 30 : compact ? 34 : narrow ? 38 : 40, // Increased title size for all categories
+          titleLineHeight: tiny ? 34 : compact ? 38 : narrow ? 42 : 44, // Increased line height
+          subtitleSize: tiny ? 15 : compact ? 16 : 18, // Increased subtitle size
+          subtitleMarginBottom: compact ? 10 : 12, // Increased margin
+          mascotPct: tiny ? '14%' : compact ? '16%' : narrow ? '18%' : '20%', // Increased image size for all categories
+          mascotMarginBottom: compact ? 12 : 16, // Increased margin
+          scrollPaddingTop: compact ? 8 : 12, // Increased padding
+          scrollPaddingBottom: compact ? 16 : 20, // Increased padding
+          containerPaddingVertical: compact ? 8 : 12, // Increased padding
+        },
+      };
+    }
+
+    return {
+      form: {
+        inputFontSize: h < 700 ? 18 : 24,
+        inputPadV: h < 700 ? 12 : 18,
+        inputPadH: h < 700 ? 20 : 24,
+        inputMarginB: h < 700 ? 12 : 20,
+        btnFontSize: h < 700 ? 20 : 28,
+        btnPadV: h < 700 ? 14 : 20,
+        btnMarginB: h < 700 ? 10 : 16,
+        btnMarginT: h < 700 ? 4 : 8,
+        linkFontSize: h < 700 ? 16 : 22,
+        mutedLinkFontSize: 16,
+        maxContentWidth,
+        padX: 16,
+      },
+      chrome: {
+        titleSize: h < 700 ? 36 : 56,
+        titleLineHeight: h < 700 ? 40 : 62,
+        subtitleSize: 18,
+        subtitleMarginBottom: 16,
+        mascotPct: h < 700 ? '18%' : '25%',
+        mascotMarginBottom: 20,
+        scrollPaddingTop: 0,
+        scrollPaddingBottom: 8,
+        containerPaddingVertical: 16,
+      },
+    };
+  }, [w, h]);
+}
