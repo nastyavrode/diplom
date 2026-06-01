@@ -1,0 +1,150 @@
+flowchart TB
+    %% === СТИЛИ ===
+    classDef screen fill:#4F8CFF,stroke:#333,stroke-width:2px,color:#222,font-size:14px,font-weight:bold;
+    classDef button fill:#FFA726,stroke:#333,stroke-width:1px,color:#222,font-size:13px;
+    classDef success fill:#00E676,stroke:#333,stroke-width:2px,color:#222,font-size:13px;
+    classDef link stroke:#FFA726,stroke-width:2px,fill:none,color:#FFA726;
+
+    %% === ЭКРАНЫ И КНОПКИ ===
+    subgraph login["LOGIN<br>Email<br>Password"]
+        l_login["Войти"]
+        l_register["Зарегистрироваться"]
+        l_guest["Продолжить без аккаунта"]
+        l_forgot["Забыли пароль?"]
+        l_teacher["Вход для учителей"]
+    end
+
+    subgraph register["REGISTER<br>Name<br>Email<br>Password<br>Confirm Password"]
+        r_register["Зарегистрироваться"]
+    end
+
+    subgraph forgotpass["FORGOT PASSWORD<br>Email"]
+        fp_send["Отправить"]
+    end
+
+    subgraph resetpass["RESET PASSWORD<br>New Password<br>Confirm Password"]
+        rp_reset["Установить новый пароль"]
+    end
+
+    subgraph mainmenu["MAIN MENU"]
+        m_lessons["Уроки"]
+        m_sandbox["Песочница"]
+        m_challenges["Челленджи"]
+        m_gallery["Галерея"]
+        m_profile["Профиль"]
+        m_exit["Выйти/Войти"]
+    end
+
+    subgraph lessons["LESSONS LIST<br>Выбор категорий"]
+        les_back["← Назад"]
+        les_select["Выбрать урок"]
+    end
+
+    subgraph player["LESSON PLAYER<br>Программирование робота"]
+        lp_execute["Выполнить"]
+        lp_back["← Назад"]
+    end
+
+    subgraph sandbox["SANDBOX<br>Свободное рисование"]
+        sb_run["Запустить"]
+        sb_save["Сохранить в галерею"]
+        sb_back["← Назад"]
+    end
+
+    subgraph challenges["CHALLENGES<br>Ежедневные задания"]
+        ch_run["Запустить"]
+        ch_back["← Назад"]
+    end
+
+    subgraph gallery["GALLERY<br>Сохранённые работы"]
+        g_back["← Назад"]
+    end
+
+    subgraph profile["PROFILE<br>Name<br>Email<br>Avatar"]
+        p_changepass["Изменить пароль"]
+        p_logout["Выйти"]
+        p_back["← Назад"]
+    end
+
+    subgraph changepass["CHANGE PASSWORD<br>Current Password<br>New Password<br>Confirm Password"]
+        cp_change["Изменить"]
+        cp_back["← Назад"]
+    end
+
+    %% === НОВЫЕ ЭКРАНЫ УЧИТЕЛЯ ===
+    subgraph teacherlogin["TEACHER LOGIN<br>Email<br>Password"]
+        tl_login["Войти"]
+        tl_register["Создать аккаунт"]
+    end
+
+    subgraph teacherregister["TEACHER REGISTER<br>Name<br>Email<br>Password<br>Confirm Password"]
+        tr_register["Зарегистрироваться"]
+    end
+
+    subgraph teachercabinet["TEACHER CABINET<br>Приветствие<br>Список учеников"]
+        tc_add["+ Добавить ученика"]
+        tc_student1["Ученик 1<br>3 урока, 2 челленджа, 18★"]
+        tc_student2["Ученик 2<br>2 урока, 1 челлендж, 7★"]
+        tc_student3["Ученик 3<br>4 урока, 3 челленджа, 25★"]
+        tc_student4["Ученик 4<br>1 урок, 0 челленджей, 2★"]
+        tc_logout["Выйти"]
+    end
+
+    subgraph studentprogress["STUDENT PROGRESS<br>Статистика и детали"]
+        sp_back["← Назад"]
+        sp_refresh["Обновить"]
+    end
+
+    %% === ПЕРЕХОДЫ ===
+    l_login --> mainmenu
+    l_register --> register
+    l_guest --> mainmenu
+    l_forgot --> forgotpass
+    r_register --> login
+    fp_send --> login
+    rp_reset --> login
+    m_lessons --> lessons
+    m_sandbox --> sandbox
+    m_challenges --> challenges
+    m_gallery --> gallery
+    m_profile --> profile
+    m_exit -->|Выход| login
+    m_exit -->|Вход из гостя| login
+    les_back --> mainmenu
+    les_select --> player
+    lp_execute -->|Успешно| mainmenu
+    lp_execute -->|Попытка| mainmenu
+    lp_back --> lessons
+    sb_run --> sandbox
+    sb_save --> gallery
+    sb_back --> mainmenu
+    ch_run --> challenges
+    ch_back --> mainmenu
+    g_back --> mainmenu
+    p_changepass --> changepass
+    p_logout -->|Выход| login
+    p_back --> mainmenu
+    cp_change --> profile
+    cp_back --> profile
+
+    %% === ПЕРЕХОДЫ ДЛЯ УЧИТЕЛЯ ===
+    l_teacher --> teacherlogin
+    tl_login --> teachercabinet
+    tl_register --> teacherregister
+    tr_register --> teachercabinet
+    teacherlogin -->|Назад| login
+    teacherregister -->|Назад| teacherlogin
+    tc_add -->|Регистрация| teacherregister
+    tc_student1 --> studentprogress
+    tc_student2 --> studentprogress
+    tc_student3 --> studentprogress
+    tc_student4 --> studentprogress
+    sp_back --> teachercabinet
+    sp_refresh --> studentprogress
+    tc_logout --> login
+
+    %% === ПРИМЕНЕНИЕ СТИЛЕЙ ===
+    class login,register,forgotpass,resetpass,mainmenu,lessons,player,sandbox,challenges,gallery,profile,changepass,teacherlogin,teacherregister,teachercabinet,studentprogress screen
+    class l_login,l_register,l_guest,l_forgot,l_teacher,r_register,fp_send,rp_reset,m_lessons,m_sandbox,m_challenges,m_gallery,m_profile,m_exit,les_back,les_select,lp_execute,lp_back,sb_run,sb_save,sb_back,ch_run,ch_back,g_back,p_changepass,p_logout,p_back,cp_change,cp_back,tl_login,tl_register,tr_register,tc_add,tc_logout,sp_back,sp_refresh button
+    class lp_execute,sp_refresh success
+    class forgotpass,resetpass link

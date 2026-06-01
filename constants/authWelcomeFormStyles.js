@@ -1,0 +1,51 @@
+import { StyleSheet } from 'react-native';
+
+export const authFormStyles = StyleSheet.create({
+  input: {
+    width: '100%',
+    alignSelf: 'stretch',
+    maxWidth: '100%',
+    backgroundColor: '#fffbe8',
+    borderRadius: 28,
+    paddingHorizontal: 24,
+    color: '#222',
+    borderWidth: 0,
+    fontFamily: 'aMavickFont',
+  },
+  primaryButton: {
+    width: '100%',
+    alignSelf: 'stretch',
+    maxWidth: '100%',
+    backgroundColor: '#FFA726',
+    borderRadius: 28,
+    alignItems: 'center',
+    elevation: 2,
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontFamily: 'aMavickFont',
+  },
+  link: {
+    color: '#00E676',
+    fontWeight: 'bold',
+    marginTop: 4,
+    fontFamily: 'aMavickFont',
+    textAlign: 'center',
+    alignSelf: 'center',
+    flexShrink: 1,
+    maxWidth: '100%',
+  },
+  mutedLink: {
+    color: '#fff',
+    opacity: 0.9,
+    textDecorationLine: 'underline',
+    fontFamily: 'aMavickFont',
+    marginTop: 12,
+    fontSize: 16,
+    textAlign: 'center',
+    alignSelf: 'center',
+    flexShrink: 1,
+    maxWidth: '100%',
+  },
+});
