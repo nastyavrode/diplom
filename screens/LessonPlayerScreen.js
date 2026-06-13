@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ScreenBackButton from '../components/ScreenBackButton';
+import TextToSpeechButton from '../components/TextToSpeechButton';
 import { completeLesson } from '../utils/storage';
 import { getLessonById } from '../utils/lessons';
+import { buildTaskLessonSpeechText, buildTheoryLessonSpeechText } from '../utils/speechText';
 import {
   executeProgram,
   estimateProgramLength,
@@ -142,11 +144,14 @@ function TheoryLessonScreen({ lesson, navigation }) {
 
   const raw = typeof lesson.theoryContent === 'string' ? lesson.theoryContent : '';
   const blocks = raw.split(/\n\n+/).filter((b) => b.trim() !== '');
+  const speechText = useMemo(() => buildTheoryLessonSpeechText(lesson), [lesson]);
 
   return (
     <View style={styles.container}>
       <View style={styles.lessonTopBar}>
         <ScreenBackButton navigation={navigation} target="LessonsList" variant="embed" />
+        <View style={styles.topBarSpacer} />
+        <TextToSpeechButton text={speechText} />
       </View>
       <Text style={styles.title}>{lesson.title}</Text>
       {lesson.description ? <Text style={styles.desc}>{lesson.description}</Text> : null}
@@ -555,6 +560,7 @@ function PathFourDirLesson({ lesson, navigation }) {
     typeof lesson.hint === 'string' && lesson.hint.trim() !== ''
       ? lesson.hint.trim()
       : 'Для этого задания подсказка пока не добавлена.';
+  const speechText = useMemo(() => buildTaskLessonSpeechText(lesson), [lesson]);
 
   const canRemove = Boolean(buildingIf) || Boolean(buildingLoop) || program.length > 0;
   const canRun = !buildingLoop && !buildingIf && flattenProgram(program).length > 0;
@@ -566,6 +572,7 @@ function PathFourDirLesson({ lesson, navigation }) {
       <View style={styles.topBar}>
         <ScreenBackButton navigation={navigation} target="LessonsList" variant="embed" />
         <View style={styles.topBarSpacer} />
+        <TextToSpeechButton text={speechText} style={styles.ttsBtnGap} />
         <TouchableOpacity style={styles.hintLampBtn} onPress={() => setShowHintModal(true)} accessibilityLabel="Подсказка" accessibilityRole="button">
           <Text style={styles.hintLampIcon}>💡</Text>
         </TouchableOpacity>
@@ -1152,6 +1159,9 @@ const styles = StyleSheet.create({
   },
   topBarSpacer: {
     flex: 1,
+  },
+  ttsBtnGap: {
+    marginRight: 8,
   },
   hintLampBtn: {
     width: 48,

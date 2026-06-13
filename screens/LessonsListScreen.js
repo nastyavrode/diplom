@@ -62,7 +62,6 @@ export default function LessonsListScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Анимированные облака */}
       <Animated.View style={[styles.cloud, { top: 100, left: 0, opacity: 0.4, width: CLOUD_WIDTH, height: CLOUD_HEIGHT, transform: [{ translateX: cloud1 }] }]}> 
         <Svg width="100%" height="100%" viewBox="0 0 270 218">
           <Path opacity={0.2} d="M215.238 91.1967C211.571 75.7343 201.566 61.8108 186.931 51.8045C172.297 41.7982 153.942 36.3298 135 36.3333C103.451 36.3333 76.05 51.23 62.4042 73.03C46.3592 74.4727 31.521 80.7982 20.7406 90.7908C9.96018 100.784 3.99813 113.739 4 127.167C4 157.233 33.3658 181.667 69.5 181.667H211.417C241.547 181.667 266 161.32 266 136.25C266 112.27 243.621 92.8317 215.238 91.1967Z" fill="#fff" />

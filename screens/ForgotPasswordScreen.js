@@ -26,7 +26,7 @@ export default function ForgotPasswordScreen({ navigation }) {
       });
 
       Alert.alert('Готово', 'Если аккаунт существует, письмо отправлено на ваш email');
-      navigation.navigate('Welcome');
+      navigation.navigate('Login');
     } catch (error) {
       Alert.alert('Ошибка', 'Не удалось отправить запрос');
     } finally {
@@ -86,7 +86,7 @@ export default function ForgotPasswordScreen({ navigation }) {
           <Text style={[authFormStyles.primaryButtonText, { fontSize: f.btnFontSize }]}>Отправить пароль</Text>
         </TouchableOpacity>
       )}
-      <TouchableOpacity style={{ alignSelf: 'stretch' }} onPress={() => navigation.navigate('Welcome')}>
+      <TouchableOpacity style={{ alignSelf: 'stretch' }} onPress={() => navigation.navigate('Login')}>
         <Text style={[authFormStyles.link, { fontSize: f.linkFontSize }]}>Назад</Text>
       </TouchableOpacity>
     </AuthScreenChrome>

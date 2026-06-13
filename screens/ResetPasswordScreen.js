@@ -62,7 +62,7 @@ const ResetPasswordScreen = ({ route, navigation }) => {
 
       if (response.ok) {
         Alert.alert('Успех', 'Пароль успешно изменён');
-        navigation.replace('Welcome');
+        navigation.replace('Login');
       } else {
         Alert.alert('Ошибка', data.error || 'Не удалось сбросить пароль');
       }
@@ -137,7 +137,7 @@ const ResetPasswordScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity style={{ alignSelf: 'stretch' }} onPress={() => navigation.navigate('Welcome')}>
+      <TouchableOpacity style={{ alignSelf: 'stretch' }} onPress={() => navigation.navigate('Login')}>
         <Text style={[authFormStyles.link, { fontSize: f.linkFontSize }]}>Назад</Text>
       </TouchableOpacity>
     </AuthScreenChrome>

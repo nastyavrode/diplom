@@ -43,8 +43,8 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
-    // @generated begin xml-fonts-init - expo prebuild (DO NOT MODIFY) sync-e234d5c7f852e9eb430c76e02f9961c0e3995de0
-    ReactFontManager.getInstance().addCustomFont(this, "Amavickfont", R.font.xml_amavickfont)
+    // @generated begin xml-fonts-init - expo prebuild (DO NOT MODIFY) sync-68384b075c16a59276fbeaa3fce4fb33b4e649aa
+    ReactFontManager.getInstance().addCustomFont(this, "aMavickFont", R.font.xml_a_mavick_font)
     // @generated end xml-fonts-init
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {

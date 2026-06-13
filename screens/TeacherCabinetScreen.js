@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -11,38 +11,34 @@ import {
   Alert,
   FlatList,
   Pressable,
-  Platform
+  Platform,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { getAuthProfile } from '../utils/authProfile';
 import { useAuth } from '../context/AuthContext';
-import { fetchTeacherClassStudents } from '../utils/api';
+import { createStudent, fetchStudents } from '../utils/api';
 
 export default function TeacherCabinetScreen({ navigation }) {
-  const { signOut, isGuestMode } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { signOut } = useAuth();
   const [userName, setUserName] = useState('');
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [newStudentName, setNewStudentName] = useState('');
+  const [newStudentEmail, setNewStudentEmail] = useState('');
+  const [newStudentPassword, setNewStudentPassword] = useState('');
+  const [creatingStudent, setCreatingStudent] = useState(false);
 
-  // Добавляем кнопку для регистрации ученика в навигационной панели
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity 
-          style={styles.addStudentButton}
-          onPress={() => navigation.navigate('StudentRegisterForTeacher')}
-          accessibilityLabel="Добавить ученика"
-        >
-          <Text style={styles.addStudentButtonText}>+</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
   const CLOUD_WIDTH = SCREEN_WIDTH * 0.7;
   const CLOUD_HEIGHT = CLOUD_WIDTH * 218 / 270;
 
-  // Анимация облаков
   const cloud1 = useRef(new Animated.Value(-270)).current;
   const cloud2 = useRef(new Animated.Value(SCREEN_WIDTH)).current;
   const cloud3 = useRef(new Animated.Value(-CLOUD_WIDTH)).current;
@@ -71,24 +67,77 @@ export default function TeacherCabinetScreen({ navigation }) {
     ).start();
   }, [cloud1, cloud2, cloud3]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const auth = await getAuthProfile();
       const name = (auth?.name || '').trim();
       setUserName(name || '');
 
-      const classStudents = await fetchTeacherClassStudents();
+      const classStudents = await fetchStudents();
       setStudents(classStudents);
     } catch (error) {
       console.error('Error loading data:', error);
       Alert.alert('Ошибка', error.message || 'Не удалось загрузить данные');
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+
+  const resetAddForm = () => {
+    setNewStudentName('');
+    setNewStudentEmail('');
+    setNewStudentPassword('');
+  };
+
+  const closeAddModal = () => {
+    setAddModalVisible(false);
+    resetAddForm();
+  };
+
+  const handleCreateStudent = async () => {
+    const nameTrim = newStudentName.trim();
+    if (!nameTrim || !newStudentEmail.trim() || !newStudentPassword) {
+      Alert.alert('Ошибка', 'Заполните все поля');
+      return;
+    }
+    if (nameTrim.length < 2) {
+      Alert.alert('Ошибка', 'Имя — не менее 2 символов');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newStudentEmail.trim())) {
+      Alert.alert('Ошибка', 'Введите корректный email');
+      return;
+    }
+    if (newStudentPassword.length < 6) {
+      Alert.alert('Ошибка', 'Пароль должен быть не менее 6 символов');
+      return;
+    }
+
+    setCreatingStudent(true);
+    try {
+      const result = await createStudent({
+        name: nameTrim,
+        email: newStudentEmail.trim(),
+        password: newStudentPassword,
+      });
+      closeAddModal();
+      if (result?.student) {
+        setStudents((prev) => [result.student, ...prev]);
+      } else {
+        await loadData();
+      }
+      Alert.alert('Успех', 'Ученик успешно добавлен');
+    } catch (error) {
+      Alert.alert('Ошибка', error.message || 'Не удалось добавить ученика');
+    } finally {
+      setCreatingStudent(false);
     }
   };
 
@@ -127,7 +176,65 @@ export default function TeacherCabinetScreen({ navigation }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#4F8CFF' }}>
-      {/* Облака */}
+      <TouchableOpacity
+        style={[styles.addStudentButton, { top: insets.top + 12 }]}
+        onPress={() => setAddModalVisible(true)}
+        accessibilityLabel="Добавить ученика"
+      >
+        <Text style={styles.addStudentButtonText}>+</Text>
+      </TouchableOpacity>
+
+      <Modal
+        transparent
+        animationType="fade"
+        visible={addModalVisible}
+        onRequestClose={closeAddModal}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Добавить ученика</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Имя"
+              placeholderTextColor="#888"
+              value={newStudentName}
+              onChangeText={setNewStudentName}
+              autoCapitalize="words"
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Email"
+              placeholderTextColor="#888"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={newStudentEmail}
+              onChangeText={setNewStudentEmail}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Пароль"
+              placeholderTextColor="#888"
+              secureTextEntry
+              value={newStudentPassword}
+              onChangeText={setNewStudentPassword}
+            />
+            {creatingStudent ? (
+              <ActivityIndicator size="large" color="#4F8CFF" style={{ marginVertical: 12 }} />
+            ) : (
+              <TouchableOpacity style={styles.modalPrimaryButton} onPress={handleCreateStudent}>
+                <Text style={styles.modalPrimaryButtonText}>Добавить</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.modalCancelButton} onPress={closeAddModal}>
+              <Text style={styles.modalCancelButtonText}>Отмена</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
       <Animated.View style={[styles.cloud, { top: 100, opacity: 0.4, width: CLOUD_WIDTH, height: CLOUD_HEIGHT, transform: [{ translateX: cloud1 }] }]}> 
         <Svg width="100%" height="100%" viewBox="0 0 270 218">
           <Path opacity={0.2} d="M215.238 91.1967C211.571 75.7343 201.566 61.8108 186.931 51.8045C172.297 41.7982 153.942 36.3298 135 36.3333C103.451 36.3333 76.05 51.23 62.4042 73.03C46.3592 74.4727 31.521 80.7982 20.7406 90.7908C9.96018 100.784 3.99813 113.739 4 127.167C4 157.233 33.3658 181.667 69.5 181.667H211.417C241.547 181.667 266 161.32 266 136.25C266 112.27 243.621 92.8317 215.238 91.1967Z" fill="#fff" />
@@ -145,7 +252,7 @@ export default function TeacherCabinetScreen({ navigation }) {
       </Animated.View>
 
       <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingTop: dynamicPaddingTop, paddingHorizontal: 16, alignItems: 'center' }]} 
+        contentContainerStyle={[styles.scrollContent, { paddingTop: dynamicPaddingTop + insets.top, paddingHorizontal: 16, alignItems: 'center' }]} 
         showsVerticalScrollIndicator={false}
       >
         <Text style={[styles.title, { fontSize: dynamicTitleFontSize, lineHeight: dynamicTitleLineHeight }]}>
@@ -158,6 +265,7 @@ export default function TeacherCabinetScreen({ navigation }) {
         ) : students.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>Нет учеников в классе</Text>
+            <Text style={styles.emptyStateHint}>Нажмите «+», чтобы добавить первого ученика</Text>
           </View>
         ) : (
           <>
@@ -202,13 +310,15 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   addStudentButton: {
+    position: 'absolute',
+    right: 16,
+    zIndex: 10,
     backgroundColor: '#FFD600',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -217,15 +327,77 @@ const styles = StyleSheet.create({
         shadowRadius: 3,
       },
       android: {
-        elevation: 4,
+        elevation: 6,
       },
     }),
   },
   addStudentButtonText: {
     color: '#4F8CFF',
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     fontFamily: 'aMavickFont',
+    lineHeight: 30,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 340,
+    backgroundColor: '#fffbe8',
+    borderRadius: 22,
+    paddingVertical: 20,
+    paddingHorizontal: 18,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+  },
+  modalTitle: {
+    fontFamily: 'aMavickFont',
+    fontSize: 22,
+    color: '#1976D2',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  modalInput: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  modalPrimaryButton: {
+    marginTop: 8,
+    backgroundColor: '#4F8CFF',
+    borderRadius: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  modalPrimaryButtonText: {
+    color: '#fff',
+    fontFamily: 'aMavickFont',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  modalCancelButton: {
+    marginTop: 10,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  modalCancelButtonText: {
+    color: '#607D8B',
+    fontFamily: 'aMavickFont',
+    fontSize: 16,
   },
   title: {
     color: '#FFD600',
@@ -307,6 +479,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontFamily: 'aMavickFont',
+  },
+  emptyStateHint: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 14,
+    fontFamily: 'aMavickFont',
+    marginTop: 8,
+    textAlign: 'center',
   },
   exitButton: {
     flexDirection: 'row',

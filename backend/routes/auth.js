@@ -5,50 +5,10 @@ const PasswordReset = require('../models/PasswordReset');
 const { sendPasswordResetEmail } = require('../utils/mail');
 const { authenticateToken } = require('../middleware/authenticate');
 const crypto = require('crypto');
+const { defaultProgress, normalizeProgress } = require('../utils/progress');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
-
-function defaultProgress() {
-  return {
-    completedLessons: [],
-    completedChallenges: [],
-    stars: 0,
-    gallery: [],
-    achievements: [],
-    lessonStars: {},
-    challengeStars: {},
-  };
-}
-
-function normalizeProgress(p) {
-  const base = defaultProgress();
-  if (!p || typeof p !== 'object') return base;
-
-  const rawStars = typeof p.stars === 'number' && !Number.isNaN(p.stars) ? p.stars : 0;
-  const lessonStarsObj = p.lessonStars && typeof p.lessonStars === 'object' ? p.lessonStars : {};
-  const challengeStarsObj = p.challengeStars && typeof p.challengeStars === 'object' ? p.challengeStars : {};
-
-  const lessonStarsSum = Object.values(lessonStarsObj).reduce((sum, v) => {
-    if (typeof v === 'number' && Number.isFinite(v) && v > 0) return sum + v;
-    return sum;
-  }, 0);
-  const challengeStarsSum = Object.values(challengeStarsObj).reduce((sum, v) => {
-    if (typeof v === 'number' && Number.isFinite(v) && v > 0) return sum + v;
-    return sum;
-  }, 0);
-
-  const stars = lessonStarsSum > 0 || challengeStarsSum > 0 ? lessonStarsSum + challengeStarsSum : rawStars;
-  return {
-    completedLessons: Array.isArray(p.completedLessons) ? p.completedLessons : [],
-    completedChallenges: Array.isArray(p.completedChallenges) ? p.completedChallenges : [],
-    stars,
-    gallery: Array.isArray(p.gallery) ? p.gallery : [],
-    achievements: Array.isArray(p.achievements) ? p.achievements.filter((x) => typeof x === 'string') : [],
-    lessonStars: lessonStarsObj,
-    challengeStars: challengeStarsObj,
-  };
-}
 
 const ACHIEVEMENT_IDS = Object.freeze({
   FIRST_LOGIN: 'first_login',
@@ -454,6 +414,7 @@ router.post('/me/progress/gallery', authenticateToken, async (req, res) => {
     const entry = {
       id: `${Date.now()}`,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       ...item,
     };
     p.gallery = [entry, ...gallery].slice(0, 40);
@@ -463,6 +424,43 @@ router.post('/me/progress/gallery', authenticateToken, async (req, res) => {
     res.json({ progress: user.progress });
   } catch (_e) {
     res.status(500).json({ error: 'Не удалось сохранить в галерею' });
+  }
+});
+
+router.put('/me/progress/gallery/:id', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { id } = req.params;
+    const item = req.body && typeof req.body === 'object' ? req.body : {};
+    if (!id) {
+      return res.status(400).json({ error: 'Укажите id проекта' });
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+    const p = normalizeProgress(user.progress);
+    const gallery = p.gallery || [];
+    const idx = gallery.findIndex((g) => g && String(g.id) === String(id));
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Проект не найден' });
+    }
+    const prev = gallery[idx];
+    const updated = {
+      ...prev,
+      ...item,
+      id: prev.id,
+      createdAt: prev.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    gallery[idx] = updated;
+    p.gallery = gallery;
+    const granted = grantAchievements(p, { event: 'save_gallery', galleryItem: item });
+    user.progress = granted.progress;
+    await user.save();
+    res.json({ progress: user.progress, item: updated });
+  } catch (_e) {
+    res.status(500).json({ error: 'Не удалось обновить проект' });
   }
 });
 
@@ -572,7 +570,7 @@ router.get('/teacher/class-students', authenticateToken, async (req, res) => {
 
     const students = await User.find({
       role: 'student',
-      classId: user.classId || 'default-class'
+      teacherId: user._id,
     }).lean();
 
     const studentsList = students.map(s => ({
@@ -600,7 +598,7 @@ router.get('/teacher/student/:studentId/progress', authenticateToken, async (req
     }
 
     const student = await User.findById(studentId).lean();
-    if (!student || student.role !== 'student' || student.classId !== (teacher.classId || 'default-class')) {
+    if (!student || student.role !== 'student' || String(student.teacherId) !== String(teacher._id)) {
       return res.status(404).json({ error: 'Ученик не найден' });
     }
 
@@ -616,5 +614,7 @@ router.get('/teacher/student/:studentId/progress', authenticateToken, async (req
     res.status(500).json({ error: 'Ошибка при получении прогресса' });
   }
 });
+
+router.use('/students', require('./students'));
 
 module.exports = router;

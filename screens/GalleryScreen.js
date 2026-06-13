@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import ScreenBackButton from '../components/ScreenBackButton';
 import { getCurrentProgress } from '../utils/storage';
 
@@ -13,6 +13,13 @@ export default function GalleryScreen({ navigation }) {
     });
     return unsubscribe;
   }, [navigation]);
+
+  const openProject = (item) => {
+    if (!item?.id) {
+      return;
+    }
+    navigation.navigate('Sandbox', { projectId: String(item.id) });
+  };
 
   return (
     <View style={[styles.container, { position: 'relative' }]}>
@@ -29,17 +36,30 @@ export default function GalleryScreen({ navigation }) {
         {items.length === 0 ? (
           <Text style={styles.empty}>Пока пусто. Сохрани любую работу из песочницы.</Text>
         ) : (
-          items.map((item) => (
-            <View key={item.id} style={styles.card}>
-              <Text style={styles.cardTitle}>{item.title || 'Работа'}</Text>
-              <Text style={styles.cardText}>Поле: {item.size}x{item.size}</Text>
-              <Text style={styles.cardText}>Команд: {item.commandsCount}</Text>
-              <Text style={styles.cardText}>Препятствий: {item.obstaclesCount}</Text>
-              <Text style={styles.cardDate}>
-                {new Date(item.createdAt).toLocaleDateString()} {new Date(item.createdAt).toLocaleTimeString()}
-              </Text>
-            </View>
-          ))
+          items.map((item) => {
+            const stamp = item.updatedAt || item.createdAt;
+            return (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.card}
+                activeOpacity={0.85}
+                onPress={() => openProject(item)}
+              >
+                <Text style={styles.cardTitle}>{item.title || 'Работа'}</Text>
+                <Text style={styles.cardText}>Поле: {item.size}x{item.size}</Text>
+                <Text style={styles.cardText}>Команд: {item.commandsCount}</Text>
+                <Text style={styles.cardText}>Препятствий: {item.obstaclesCount}</Text>
+                <Text style={styles.cardDate}>
+                  {stamp
+                    ? `${new Date(stamp).toLocaleDateString()} ${new Date(stamp).toLocaleTimeString()}`
+                    : '—'}
+                </Text>
+                {!Array.isArray(item.program) ? (
+                  <Text style={styles.cardLegacy}>Только просмотр метаданных (старый формат)</Text>
+                ) : null}
+              </TouchableOpacity>
+            );
+          })
         )}
       </ScrollView>
     </View>
@@ -98,6 +118,12 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontFamily: 'aMavickFont',
     color: '#777',
+    fontSize: 14,
+  },
+  cardLegacy: {
+    marginTop: 8,
+    fontFamily: 'aMavickFont',
+    color: '#E53935',
     fontSize: 14,
   },
 });

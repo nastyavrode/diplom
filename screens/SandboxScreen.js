@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Modal, Alert, ScrollView, Dimensions } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Modal, Alert, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import ScreenBackButton from '../components/ScreenBackButton';
-import { saveGalleryItem } from '../utils/storage';
+import { saveGalleryItem, updateGalleryItem, getGalleryItemById } from '../utils/storage';
 
 const DEFAULT_SIZE = 7;
 const MAX_PROGRAM_LENGTH = 20;
@@ -19,7 +19,89 @@ function cellsEqual(a, b) {
   return Math.round(a.x) === Math.round(b.x) && Math.round(a.y) === Math.round(b.y);
 }
 
-export default function SandboxScreen({ navigation }) {
+const VALID_COMMANDS = new Set(['Вперёд', 'Повернуть →', 'Повернуть ←']);
+
+function clampCell(value, max) {
+  const n = Math.round(Number(value));
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(max, n));
+}
+
+function normalizeDir(dir) {
+  const n = Math.round(Number(dir));
+  if (!Number.isFinite(n)) return 0;
+  return ((n % 4) + 4) % 4;
+}
+
+function buildGallerySnapshot({ size, program, hero, finish, obstacles }) {
+  return {
+    title: `Маршрут ${size}x${size}`,
+    size,
+    commandsCount: program.length,
+    obstaclesCount: obstacles.length,
+    program: [...program],
+    hero: {
+      x: clampCell(hero.x, size - 1),
+      y: clampCell(hero.y, size - 1),
+      dir: normalizeDir(hero.dir),
+    },
+    finish: {
+      x: clampCell(finish.x, size - 1),
+      y: clampCell(finish.y, size - 1),
+    },
+    obstacles: obstacles.map((o) => ({
+      x: clampCell(o.x, size - 1),
+      y: clampCell(o.y, size - 1),
+    })),
+  };
+}
+
+function parseGalleryProject(item) {
+  if (!item || typeof item !== 'object') {
+    return { ok: false, error: 'Данные проекта повреждены.' };
+  }
+  const size = Number(item.size);
+  if (!SIZES.includes(size)) {
+    return { ok: false, error: 'Некорректный размер поля в сохранённом проекте.' };
+  }
+  if (!Array.isArray(item.program)) {
+    return {
+      ok: false,
+      error: 'Эта работа сохранена без полного состояния и не может быть открыта для редактирования.',
+    };
+  }
+  const program = item.program.filter((cmd) => typeof cmd === 'string' && VALID_COMMANDS.has(cmd));
+  const heroRaw = item.hero && typeof item.hero === 'object' ? item.hero : { x: 0, y: 0, dir: 0 };
+  const finishRaw = item.finish && typeof item.finish === 'object'
+    ? item.finish
+    : { x: size - 1, y: size - 1 };
+  const hero = {
+    x: clampCell(heroRaw.x, size - 1),
+    y: clampCell(heroRaw.y, size - 1),
+    dir: normalizeDir(heroRaw.dir),
+  };
+  const finish = {
+    x: clampCell(finishRaw.x, size - 1),
+    y: clampCell(finishRaw.y, size - 1),
+  };
+  const obstacles = Array.isArray(item.obstacles)
+    ? item.obstacles
+        .filter((o) => o && typeof o === 'object')
+        .map((o) => ({ x: clampCell(o.x, size - 1), y: clampCell(o.y, size - 1) }))
+        .filter((o) => !cellsEqual(o, hero) && !cellsEqual(o, finish))
+    : [];
+
+  return {
+    ok: true,
+    state: { size, program, hero, finish, obstacles },
+  };
+}
+
+export default function SandboxScreen({ navigation, route }) {
+  const initialProjectId = route.params?.projectId ? String(route.params.projectId) : null;
+  const [projectId, setProjectId] = useState(initialProjectId);
+  const [loadingProject, setLoadingProject] = useState(Boolean(initialProjectId));
+  const [loadError, setLoadError] = useState(null);
   const [size, setSize] = useState(DEFAULT_SIZE);
   const [program, setProgram] = useState([]);
   const [anim] = useState(new Animated.Value(0));
@@ -40,16 +122,75 @@ export default function SandboxScreen({ navigation }) {
   const FIELD_PADDING = 8;
   const CELL_SIZE = Math.floor((FIELD_MAX_SIZE - 2 * FIELD_PADDING) / size);
 
-  // Обновлять finish при смене размера
-  React.useEffect(() => {
-    setFinish({ x: Math.round(size - 1), y: Math.round(size - 1) });
+  const applyProjectState = useCallback(({ size: nextSize, program: nextProgram, hero: nextHero, finish: nextFinish, obstacles: nextObstacles }) => {
+    setSize(nextSize);
+    setProgram(nextProgram);
+    setHero(nextHero);
+    setFinish(nextFinish);
+    setObstacles(nextObstacles);
+    animX.setValue(nextHero.x);
+    animY.setValue(nextHero.y);
+    animDir.setValue(nextHero.dir);
+  }, [animX, animY, animDir]);
+
+  const resetFieldForSize = useCallback((newSize) => {
     setHero({ x: 0, y: 0, dir: 0 });
+    setFinish({ x: Math.round(newSize - 1), y: Math.round(newSize - 1) });
     setObstacles([]);
     setProgram([]);
     animX.setValue(0);
     animY.setValue(0);
     animDir.setValue(0);
-  }, [size]);
+  }, [animX, animY, animDir]);
+
+  useEffect(() => {
+    if (!initialProjectId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      setLoadingProject(true);
+      setLoadError(null);
+      try {
+        const item = await getGalleryItemById(initialProjectId);
+        if (cancelled) return;
+        if (!item) {
+          setLoadError('Проект не найден. Возможно, он был удалён.');
+          return;
+        }
+        const parsed = parseGalleryProject(item);
+        if (!parsed.ok) {
+          setLoadError(parsed.error);
+          return;
+        }
+        applyProjectState(parsed.state);
+        setProjectId(String(item.id));
+      } catch (_e) {
+        if (!cancelled) {
+          setLoadError('Не удалось загрузить проект. Проверьте соединение и попробуйте снова.');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingProject(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialProjectId, applyProjectState]);
+
+  useEffect(() => {
+    if (loadError) {
+      Alert.alert('Ошибка', loadError, [
+        { text: 'В галерею', onPress: () => navigation.navigate('Gallery') },
+        { text: 'Назад', onPress: () => navigation.goBack() },
+      ]);
+    }
+  }, [loadError, navigation]);
 
   // Добавить команду
   const addCommand = (cmd) => {
@@ -104,7 +245,9 @@ export default function SandboxScreen({ navigation }) {
   };
   // Изменить размер поля
   const changeSize = (newSize) => {
+    if (newSize === size) return;
     setSize(newSize);
+    resetFieldForSize(newSize);
   };
   // Запуск программы
   const runCommands = () => {
@@ -174,13 +317,22 @@ export default function SandboxScreen({ navigation }) {
   };
 
   const saveCurrentWork = async () => {
-    await saveGalleryItem({
-      title: `Маршрут ${size}x${size}`,
-      size,
-      commandsCount: program.length,
-      obstaclesCount: obstacles.length,
-    });
-    Alert.alert('Сохранено', 'Работа добавлена в Галерею.');
+    const snapshot = buildGallerySnapshot({ size, program, hero, finish, obstacles });
+    try {
+      if (projectId) {
+        await updateGalleryItem(projectId, snapshot);
+        Alert.alert('Сохранено', 'Изменения обновлены в галерее.');
+      } else {
+        const newId = await saveGalleryItem(snapshot);
+        if (newId) {
+          setProjectId(newId);
+        }
+        Alert.alert('Сохранено', 'Работа добавлена в галерею.');
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Не удалось сохранить проект.';
+      Alert.alert('Ошибка сохранения', message);
+    }
   };
 
   // Координаты героя
@@ -199,6 +351,15 @@ export default function SandboxScreen({ navigation }) {
     outputRange: ['0deg', '90deg', '180deg', '270deg'],
   });
 
+  if (loadingProject) {
+    return (
+      <View style={[styles.container, styles.centeredState]}>
+        <ActivityIndicator size="large" color="#FFD600" />
+        <Text style={styles.loadingText}>Загрузка проекта...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { position: 'relative' }]}>
       <ScreenBackButton
@@ -208,6 +369,7 @@ export default function SandboxScreen({ navigation }) {
         overlayStyle={{ top: 38, left: 12 }}
       />
       <Text style={styles.title}>Песочница</Text>
+      {projectId ? <Text style={styles.editHint}>Редактирование сохранённого проекта</Text> : null}
       <View style={styles.sizeRow}>
         <Text style={styles.sizeLabel}>Размер поля:</Text>
         {SIZES.map(s => (
@@ -304,7 +466,7 @@ export default function SandboxScreen({ navigation }) {
           <Text style={styles.runText}>Выполнить</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.saveBtn} onPress={saveCurrentWork} disabled={running}>
-          <Text style={styles.runText}>Сохранить в галерею</Text>
+          <Text style={styles.runText}>{projectId ? 'Сохранить изменения' : 'Сохранить в галерею'}</Text>
         </TouchableOpacity>
       </View>
       <Modal
@@ -350,6 +512,23 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     marginTop: 2,
     textAlign: 'center',
+  },
+  editHint: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'aMavickFont',
+    marginTop: -10,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  centeredState: {
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    color: '#fff',
+    fontFamily: 'aMavickFont',
+    fontSize: 18,
   },
   sizeRow: {
     flexDirection: 'row',

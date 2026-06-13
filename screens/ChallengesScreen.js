@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import ScreenBackButton from '../components/ScreenBackButton';
+import TextToSpeechButton from '../components/TextToSpeechButton';
 import { completeChallenge, getCurrentProgress } from '../utils/storage';
+import { buildChallengeSpeechText } from '../utils/speechText';
 import {
   buildDailyChallengeForDateKey,
   dateKeyLocal,
@@ -33,6 +35,10 @@ export default function ChallengesScreen({ navigation }) {
   const pastDateKeys = useMemo(() => getRecentPastDateKeys(todayKey, 50, { excludeEnd: true }), [todayKey]);
 
   const activeChallenge = useMemo(() => buildDailyChallengeForDateKey(selectedDateKey), [selectedDateKey]);
+  const challengeSpeechText = useMemo(
+    () => (activeChallenge ? buildChallengeSpeechText(activeChallenge) : ''),
+    [activeChallenge]
+  );
 
   const reloadProgress = useCallback(async () => {
     const progress = await getCurrentProgress();
@@ -189,7 +195,10 @@ export default function ChallengesScreen({ navigation }) {
             <Text style={styles.dateLine}>
               {selectedDateKey === todayKey ? 'Сегодня' : formatRuDateKey(selectedDateKey)}
             </Text>
-            <Text style={styles.cardTitle}>{activeChallenge.title}</Text>
+            <View style={styles.cardTitleRow}>
+              <Text style={styles.cardTitle}>{activeChallenge.title}</Text>
+              <TextToSpeechButton text={challengeSpeechText} />
+            </View>
             <Text style={styles.cardDescription}>{activeChallenge.description}</Text>
 
             <View style={styles.howBox}>
@@ -399,7 +408,15 @@ const styles = StyleSheet.create({
     fontFamily: 'aMavickFont',
     marginBottom: 4,
   },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 4,
+  },
   cardTitle: {
+    flex: 1,
     fontSize: 24,
     color: '#333',
     fontFamily: 'aMavickFont',

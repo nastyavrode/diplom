@@ -4,6 +4,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
+const studentsRoutes = require('./routes/students');
 
 const app = express();
 // 5000 на macOS часто занят «Приёмом AirPlay» — ответ без CORS, клиент ломается.
@@ -22,6 +23,7 @@ app.use(express.json());
 // Routes
 // Подключаем маршруты аутентификации
 app.use('/api/auth', authRoutes);
+app.use('/api/students', studentsRoutes);
 
 // Connect to MongoDB
 mongoose

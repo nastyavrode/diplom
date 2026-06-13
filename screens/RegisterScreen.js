@@ -12,6 +12,7 @@ export default function RegisterScreen({ navigation }) {
   const f = m.form;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('student');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,8 +33,12 @@ export default function RegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     const nameTrim = name.trim();
-    if (!nameTrim || !email.trim() || !password || !password2) {
+    if (!nameTrim || !email.trim() || !password || !password2 || !role) {
       Alert.alert('Ошибка', 'Заполните все поля');
+      return;
+    }
+    if (!['student', 'teacher'].includes(role)) {
+      Alert.alert('Ошибка', 'Выберите роль');
       return;
     }
     if (nameTrim.length < 2) {
@@ -55,10 +60,10 @@ export default function RegisterScreen({ navigation }) {
 
     setLoading(true);
     try {
-      const data = await register({ name: nameTrim, email: email.trim(), password });
+      const data = await register({ name: nameTrim, email: email.trim(), password, role });
       await signIn();
-      // Всегда студент при регистрации через обычный экран
-      navigation.reset({ index: 0, routes: [{ name: 'MainMenu' }] });
+      const route = data.role === 'teacher' ? 'TeacherCabinet' : 'MainMenu';
+      navigation.reset({ index: 0, routes: [{ name: route }] });
       Alert.alert('Успех', 'Регистрация прошла успешно!');
     } catch (error) {
       Alert.alert('Ошибка', error.message || 'Не удалось зарегистрироваться');
@@ -97,6 +102,59 @@ export default function RegisterScreen({ navigation }) {
         value={email}
         onChangeText={setEmail}
       />
+      <Text
+        style={{
+          color: '#fff',
+          fontFamily: 'aMavickFont',
+          marginBottom: 8,
+          fontSize: f.mutedLinkFontSize,
+          alignSelf: 'center',
+          maxWidth: f.maxContentWidth,
+        }}
+      >
+        Роль
+      </Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          width: '100%',
+          maxWidth: f.maxContentWidth,
+          alignSelf: 'center',
+          marginBottom: f.inputMarginB,
+          gap: 8,
+        }}
+      >
+        {[
+          { value: 'student', label: 'Ученик' },
+          { value: 'teacher', label: 'Учитель' },
+        ].map((option) => {
+          const selected = role === option.value;
+          return (
+            <TouchableOpacity
+              key={option.value}
+              style={{
+                flex: 1,
+                backgroundColor: selected ? '#FFA726' : '#fffbe8',
+                borderRadius: 28,
+                paddingVertical: f.inputPadV,
+                alignItems: 'center',
+              }}
+              onPress={() => setRole(option.value)}
+            >
+              <Text
+                style={{
+                  fontFamily: 'aMavickFont',
+                  color: selected ? '#fff' : '#222',
+                  fontWeight: 'bold',
+                  fontSize: f.btnFontSize,
+                }}
+              >
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
       <TextInput
         style={inputCommon()}
         placeholder="Пароль"
@@ -165,7 +223,7 @@ export default function RegisterScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       )}
-      <TouchableOpacity style={{ alignSelf: 'stretch' }} onPress={() => navigation.navigate('Welcome')}>
+      <TouchableOpacity style={{ alignSelf: 'stretch' }} onPress={() => navigation.navigate('Login')}>
         <Text style={[authFormStyles.link, { fontSize: f.linkFontSize }]}>Уже есть аккаунт? Войти</Text>
       </TouchableOpacity>
     </AuthScreenChrome>

@@ -51,6 +51,14 @@ export async function saveGalleryItemOnServer(item) {
   return data.progress;
 }
 
+export async function updateGalleryItemOnServer(id, item) {
+  const data = await authFetch(`/me/progress/gallery/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(item),
+  });
+  return data;
+}
+
 export async function mergeServerProgress(guestProgress) {
   const data = await authFetch('/me/progress/merge', {
     method: 'POST',

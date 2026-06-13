@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 /**
- * Вёрстка экранов Welcome/Login/Register: на узких телефонах (например iPhone 12 mini, 375×812)
+ * Вёрстка экранов Login/Register: на узких телефонах (например iPhone 12 mini, 375×812)
  * уменьшаем шрифты и ширину контента. Вертикальное положение задаёт AuthScreenChrome (центр +
  * SafeArea), здесь только отступы.
  */

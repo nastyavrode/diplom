@@ -12,6 +12,7 @@ import {
   completeLessonOnServer,
   completeChallengeOnServer,
   saveGalleryItemOnServer,
+  updateGalleryItemOnServer,
   patchServerProfile,
 } from './progressApi';
 
@@ -301,28 +302,91 @@ export async function completeChallenge(challengeId, starsEarned = 1) {
   }
 }
 
+async function updateLocalGallery(sessionEmail, id, item) {
+  const users = await readUsers();
+  const currentUser = users[sessionEmail];
+  if (!currentUser) {
+    throw new Error('Пользователь не найден');
+  }
+  const gallery = currentUser.progress?.gallery || [];
+  const idx = gallery.findIndex((g) => g && String(g.id) === String(id));
+  if (idx === -1) {
+    throw new Error('Проект не найден');
+  }
+  const prev = gallery[idx];
+  const updated = {
+    ...prev,
+    ...item,
+    id: prev.id,
+    createdAt: prev.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  gallery[idx] = updated;
+  const next = {
+    ...defaultProgress(),
+    ...currentUser.progress,
+    gallery,
+  };
+  next.achievements = computeAchievementsFromProgress(next);
+  currentUser.progress = next;
+  users[sessionEmail] = currentUser;
+  await writeUsers(users);
+  return updated;
+}
+
+async function appendLocalGallery(sessionEmail, item) {
+  const users = await readUsers();
+  const currentUser = users[sessionEmail];
+  if (!currentUser) {
+    throw new Error('Пользователь не найден');
+  }
+  const gallery = currentUser.progress?.gallery || [];
+  const entry = {
+    id: `${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...item,
+  };
+  const nextGallery = [entry, ...gallery].slice(0, 40);
+  const next = {
+    ...defaultProgress(),
+    ...currentUser.progress,
+    gallery: nextGallery,
+  };
+  next.achievements = computeAchievementsFromProgress(next);
+  currentUser.progress = next;
+  users[sessionEmail] = currentUser;
+  await writeUsers(users);
+  return entry;
+}
+
+export async function getGalleryItemById(id) {
+  if (id == null || String(id).trim() === '') {
+    return null;
+  }
+  const progress = await getCurrentProgress();
+  const gallery = progress.gallery || [];
+  return gallery.find((g) => g && String(g.id) === String(id)) || null;
+}
+
 export async function saveGalleryItem(item) {
   const token = await getToken();
   if (token) {
-    try {
-      await saveGalleryItemOnServer(item);
-    } catch (_e) {
-      /* офлайн */
-    }
-    return;
+    const progress = await saveGalleryItemOnServer(item);
+    const created = Array.isArray(progress?.gallery) ? progress.gallery[0] : null;
+    return created?.id != null ? String(created.id) : null;
   }
 
   if (await getGuestBrowsing()) {
     const b = await getGuestBundle();
     const gallery = b.progress?.gallery || [];
-    const nextGallery = [
-      {
-        id: `${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        ...item,
-      },
-      ...gallery,
-    ].slice(0, 40);
+    const entry = {
+      id: `${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...item,
+    };
+    const nextGallery = [entry, ...gallery].slice(0, 40);
     const next = {
       ...defaultProgress(),
       ...b.progress,
@@ -331,7 +395,58 @@ export async function saveGalleryItem(item) {
     next.achievements = computeAchievementsFromProgress(next);
     b.progress = next;
     await saveGuestBundle(b);
+    return String(entry.id);
   }
+
+  const sessionEmail = await AsyncStorage.getItem(SESSION_KEY);
+  if (sessionEmail) {
+    const entry = await appendLocalGallery(sessionEmail, item);
+    return entry?.id != null ? String(entry.id) : null;
+  }
+
+  throw new Error('Не удалось сохранить проект');
+}
+
+export async function updateGalleryItem(id, item) {
+  const token = await getToken();
+  if (token) {
+    await updateGalleryItemOnServer(id, item);
+    return;
+  }
+
+  if (await getGuestBrowsing()) {
+    const b = await getGuestBundle();
+    const gallery = b.progress?.gallery || [];
+    const idx = gallery.findIndex((g) => g && String(g.id) === String(id));
+    if (idx === -1) {
+      throw new Error('Проект не найден');
+    }
+    const prev = gallery[idx];
+    gallery[idx] = {
+      ...prev,
+      ...item,
+      id: prev.id,
+      createdAt: prev.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const next = {
+      ...defaultProgress(),
+      ...b.progress,
+      gallery,
+    };
+    next.achievements = computeAchievementsFromProgress(next);
+    b.progress = next;
+    await saveGuestBundle(b);
+    return;
+  }
+
+  const sessionEmail = await AsyncStorage.getItem(SESSION_KEY);
+  if (sessionEmail) {
+    await updateLocalGallery(sessionEmail, id, item);
+    return;
+  }
+
+  throw new Error('Проект не найден');
 }
 
 export async function getCurrentProgress() {

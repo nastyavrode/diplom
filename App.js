@@ -15,8 +15,6 @@ import {
 } from './utils/guestBundle';
 import { logoutUser } from './utils/storage';
 
-import WelcomeScreen from './screens/WelcomeScreen';
-import WelcomeScreenStatic from './screens/WelcomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
@@ -29,8 +27,6 @@ import ChallengesScreen from './screens/ChallengesScreen';
 import GalleryScreen from './screens/GalleryScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import LessonPlayerScreen from './screens/LessonPlayerScreen';
-import TeacherLoginScreen from './screens/TeacherLoginScreen';
-import TeacherRegisterScreen from './screens/TeacherRegisterScreen';
 import TeacherCabinetScreen from './screens/TeacherCabinetScreen';
 import StudentProgressScreen from './screens/StudentProgressScreen';
 import StudentRegisterForTeacherScreen from './screens/StudentRegisterForTeacherScreen';
@@ -125,7 +121,6 @@ const App = () => {
             screenOptions={{ headerShown: false }}
           >
           <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
@@ -137,8 +132,6 @@ const App = () => {
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="LessonPlayer" component={LessonPlayerScreen} />
           <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
-          <Stack.Screen name="TeacherLogin" component={TeacherLoginScreen} />
-          <Stack.Screen name="TeacherRegister" component={TeacherRegisterScreen} />
           <Stack.Screen name="TeacherCabinet" component={TeacherCabinetScreen} />
           <Stack.Screen name="StudentProgress" component={StudentProgressScreen} />
           <Stack.Screen name="StudentRegisterForTeacher" component={StudentRegisterForTeacherScreen} />

@@ -4,7 +4,49 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="da26d28b-4936-4c7c-a635-379ab89e999d" name="Changes" comment="" />
+    <list default="true" id="da26d28b-4936-4c7c-a635-379ab89e999d" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/components/TextToSpeechButton.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/diagrams/three_tier_architecture.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/._.env.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/._.idea" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/._App.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/._workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/._workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/App.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/java/com/anonymous/myproject/MainApplication.kt" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/java/com/anonymous/myproject/MainApplication.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/app/src/main/res/values/styles.xml" beforeDir="false" afterPath="$PROJECT_DIR$/android/app/src/main/res/values/styles.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/android/gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/models/User.js" beforeDir="false" afterPath="$PROJECT_DIR$/backend/models/User.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/routes/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/backend/routes/auth.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/scripts/seedTeacher.js" beforeDir="false" afterPath="$PROJECT_DIR$/backend/scripts/seedTeacher.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/backend/server.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hooks/useAuthLayoutMetrics.js" beforeDir="false" afterPath="$PROJECT_DIR$/hooks/useAuthLayoutMetrics.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/._WelcomeScreen.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/._WelcomeScreenStatic.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/ChallengesScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/screens/ChallengesScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/ForgotPasswordScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/screens/ForgotPasswordScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/GalleryScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/screens/GalleryScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/LessonPlayerScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/screens/LessonPlayerScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/LessonsListScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/screens/LessonsListScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/RegisterScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/screens/RegisterScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/ResetPasswordScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/screens/ResetPasswordScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/SandboxScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/screens/SandboxScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/TeacherCabinetScreen.js" beforeDir="false" afterPath="$PROJECT_DIR$/screens/TeacherCabinetScreen.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/TeacherLoginScreen.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/TeacherRegisterScreen.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/WelcomeScreen.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/screens/WelcomeScreenStatic.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/api.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/api.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/progressApi.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/progressApi.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/storage.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/storage.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -18,6 +60,12 @@
       <entry key="_/Volumes/KINGSTON/nastya/obsidian/diplom/myproject" value="3COP6mWgzTdt7ZikS1enwXo9Ozp" />
     </persistenceIdMap>
   </component>
+  <component name="CopilotUserSelectedChatMode">
+    <option name="chatModeId" value="Agent" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
 }</component>
@@ -26,19 +74,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Volumes/KINGSTON/nastya/obsidian/diplom/myproject",
-    "settings.editor.selected.configurable": "preferences.sourceCode"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Volumes/KINGSTON/nastya/obsidian/diplom/myproject&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.fonts.default&quot;
   }
-}]]></component>
+}</component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="da26d28b-4936-4c7c-a635-379ab89e999d" name="Changes" comment="" />

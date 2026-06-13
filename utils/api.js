@@ -12,6 +12,7 @@ import {
 import { mergeServerProgress } from './progressApi';
 
 const API_URL = API_AUTH_BASE;
+const API_STUDENTS_URL = `${API_AUTH_BASE}/students`;
 
 function isUnreachableServerError(err) {
   const msg = (err && err.message) || String(err);
@@ -138,18 +139,22 @@ export const logout = async () => {
 
 // --- Teacher API Functions ---
 
-export const fetchTeacherClassStudents = async () => {
+async function authHeaders() {
+  const token = await getToken();
+  if (!token) {
+    throw new Error('Нет токена авторизации');
+  }
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+export const fetchStudents = async () => {
   try {
-    const token = await getToken();
-    if (!token) {
-      throw new Error('Нет токена авторизации');
-    }
-    const response = await fetchWithTimeout(`${API_URL}/teacher/class-students`, {
+    const response = await fetchWithTimeout(API_STUDENTS_URL, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await authHeaders(),
     });
 
     if (!response.ok) {
@@ -163,6 +168,45 @@ export const fetchTeacherClassStudents = async () => {
     throw wrapNetworkError(error);
   }
 };
+
+export const createStudent = async ({ name, email, password }) => {
+  try {
+    const response = await fetchWithTimeout(API_STUDENTS_URL, {
+      method: 'POST',
+      headers: await authHeaders(),
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Ошибка создания ученика');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw wrapNetworkError(error);
+  }
+};
+
+export const fetchStudentById = async (studentId) => {
+  try {
+    const response = await fetchWithTimeout(`${API_STUDENTS_URL}/${studentId}`, {
+      method: 'GET',
+      headers: await authHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Ошибка получения ученика');
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw wrapNetworkError(error);
+  }
+};
+
+export const fetchTeacherClassStudents = async () => fetchStudents();
 
 export const fetchStudentProgress = async (studentId) => {
   try {

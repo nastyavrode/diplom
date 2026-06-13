@@ -102,7 +102,10 @@ async function seedTeacher() {
     ];
 
     for (const studentData of students) {
-      const student = new User(studentData);
+      const student = new User({
+        ...studentData,
+        teacherId: teacher._id,
+      });
       await student.save();
       console.log('✅ Создан ученик:', student.email);
     }
